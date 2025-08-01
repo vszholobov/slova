@@ -10,12 +10,14 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxtjs/proxy": "^2.1.0",
     "nuxt": "^4.0.1",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@nuxt/types": "^2.18.1",
-    "@nuxt/typescript-build": "^3.0.2"
+    "@nuxt/typescript-build": "^3.0.2",
+    "nuxt-proxy-request": "^3.0.0"
   }
 }
