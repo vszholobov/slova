@@ -186,7 +186,7 @@ func gameHandler(conn *websocket.Conn, session *GameSession, playerNum string) {
 				session.Vote = &SessionVote{
 					Type: model.StartNewVote,
 				}
-			} else if session.Vote.Type != model.StartNewVote {
+			} else if session.Vote.Type != model.VoteType(rawCmd.Command) {
 				// Уже есть другое голосование. Игнорим
 				continue
 			}
@@ -197,7 +197,7 @@ func gameHandler(conn *websocket.Conn, session *GameSession, playerNum string) {
 			}
 
 			if session.Vote.Player1 != nil && session.Vote.Player2 != nil {
-				if *session.Vote.Player1 {
+				if session.Vote.Type == model.StartNewVote && *session.Vote.Player1 {
 					session.Status = ACTIVE
 				}
 				session.Vote = nil
