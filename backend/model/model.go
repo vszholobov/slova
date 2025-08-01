@@ -12,6 +12,14 @@ const (
 	CommandStopSkip    UserCommand = "STOP_SKIP"
 )
 
+type VoteType string
+
+const (
+	StartNewVote VoteType = "START_NEW"
+	StopWinVote  VoteType = "STOP_WIN"
+	StopSkipVote VoteType = "STOP_SKIP"
+)
+
 type RawUserCommand struct {
 	Command UserCommand     `json:"command"`
 	Body    json.RawMessage `json:"body"`

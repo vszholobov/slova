@@ -46,7 +46,9 @@ type GameSessionState struct {
 }
 
 type SessionVote struct {
-	// TODO: поля с json-тегами
+	Type    model.VoteType `json:"type"`
+	Player1 *bool          `json:"player1"`
+	Player2 *bool          `json:"player2"`
 }
 
 type SessionGuesses struct {
@@ -158,6 +160,11 @@ func gameHandler(conn *websocket.Conn, session *GameSession, playerNum string) {
 				continue
 			}
 			log.Infof("[%s] Set username: %s", sessionId, body.Username)
+			if playerNum == "1" {
+				session.Players.Player1.Username = body.Username
+			} else {
+				session.Players.Player2.Username = body.Username
+			}
 
 		case model.CommandGuess:
 			var body model.GuessCommandBody
@@ -167,17 +174,34 @@ func gameHandler(conn *websocket.Conn, session *GameSession, playerNum string) {
 			}
 			log.Infof("[%s] Guess: %s", sessionId, body.Guess)
 
-		case model.CommandStopWin, model.CommandStopSkip:
+		case model.CommandStartNew, model.CommandStopWin, model.CommandStopSkip:
 			var body model.VoteCommandBody
 			if err := json.Unmarshal(rawCmd.Body, &body); err != nil {
 				log.Warnf("invalid vote body: %v", err)
 				continue
 			}
 			log.Infof("[%s] Vote: %v", sessionId, body.Vote)
+			if session.Vote == nil {
+				// Новое голосование
+				session.Vote = &SessionVote{
+					Type: model.StartNewVote,
+				}
+			} else if session.Vote.Type != model.StartNewVote {
+				// Уже есть другое голосование. Игнорим
+				continue
+			}
+			if playerNum == "1" {
+				session.Vote.Player1 = &body.Vote
+			} else {
+				session.Vote.Player2 = &body.Vote
+			}
 
-		case model.CommandStartNew:
-			log.Infof("[%s] Start new round", sessionId)
-			// Здесь можно вставить start logic
+			if session.Vote.Player1 != nil && session.Vote.Player2 != nil {
+				if *session.Vote.Player1 {
+					session.Status = ACTIVE
+				}
+				session.Vote = nil
+			}
 
 		default:
 			log.Warnf("unknown command: %s", rawCmd.Command)
